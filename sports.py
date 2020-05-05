@@ -36,7 +36,6 @@ def setup_df(file, msg):
 
 #  NaN values might still have significance in being missing and imputing them with zeros is probably the worst thing you can do and the worst imputation method you use. Not only will you be introducing zeros arbitrarily which might skew your variable but 0 might not even be an acceptable value in your variables, meaning your variable might not have a true zero.
 def clean_dataset(df):
-    assert isinstance(df, pd.DataFrame), "df needs to be a pd.DataFrame"
     df.dropna(inplace=True)
     indices_to_keep = ~df.isin([np.nan, np.inf, -np.inf]).any(1)
     return df[indices_to_keep].astype(np.float64)
@@ -60,28 +59,17 @@ def sms():
         # print(model)
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
-
-        print('accuracy score ', accuracy_score(y_test, y_pred))
-        print(confusion_matrix(y_test, y_pred))
         print(classification_report(y_test, y_pred))
-        scores = cross_val_score(model, X_test, y_test, scoring='accuracy')
-        print('scores ', scores)
-        print("Using just the last result from the home and visitor teams")
-        acc_from_cross_val_score = np.mean(scores) * 100
-        print("Accuracy: {}%".format(acc_from_cross_val_score))
+        accuracy = np.mean(cross_val_score(model, X_test, y_test, scoring='accuracy')) * 100
+        print("Accuracy: {}%".format(accuracy))
 
         print('confusion matrix {}'.format(pd.DataFrame(
             confusion_matrix(y_test, y_pred),
             columns=['Predicted Loss', 'Predicted Win'],
             index=['True Loss', 'True Win']
         )))
-        # distributions for each group
-        print('y_train class distribution')
-        print(y_train.value_counts(normalize=True))
-        print('y_test class distribution')
-        print(y_test.value_counts(normalize=True))
-        msg = 'accuracy score: {}\n confusion matrix: {}\n distributions for predicted group: {}\n'.format(
-            acc_from_cross_val_score, confusion_matrix(y_test, y_pred), y_test.value_counts(normalize=True))
+        msg = 'accuracy score: {}\n confusion matrix:\n {}'.format(
+            accuracy, confusion_matrix(y_test, y_pred))
         
     else:
         msg = "Send a message according to Klay Thompson's stats columns: {}".format(cols)
